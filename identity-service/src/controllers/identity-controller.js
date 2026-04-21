@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const generateTokens = require("../utils/generateToken");
 const logger = require("../utils/logger");
 const { validateRegistration } = require("../utils/validation");
 
@@ -6,7 +7,7 @@ const registerUser = async (req, res) => {
   logger.info("Registration endpoint hit...");
   try {
     // validate the schema
-    const { error } = validateRegistration(req.body);
+    const { error, value } = validateRegistration(req.body);
 
     if (error) {
       logger.warn(`Validation error : ${error.details[0].message}`);
@@ -16,9 +17,9 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const { username, email, password } = req.body;
+    const { username, email, password } = value;
 
-    let user = User.findOne({ $or: [{ username }, { email }] });
+    let user = await User.findOne({ $or: [{ username }, { email }] });
     if (user) {
       logger.warn("User already exists");
       return res.status(400).json({
@@ -31,7 +32,16 @@ const registerUser = async (req, res) => {
 
     await user.save();
 
-    logger.warn("User saved successfully", user._id);
+    logger.info(`User saved successfully: ${user._id}`);
+
+    const { accessToken, refreshToken } = generateTokens(user);
+
+    res.status(201).json({
+      success: true,
+      message: "User registered successfully!",
+      accessToken,
+      refreshToken,
+    });
   } catch (error) {
     logger.error("Registration error occured", error);
     res.status(500).json({
@@ -40,3 +50,5 @@ const registerUser = async (req, res) => {
     });
   }
 };
+
+module.exports = { registerUser };
