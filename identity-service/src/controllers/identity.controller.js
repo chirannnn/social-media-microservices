@@ -34,7 +34,7 @@ const registerUser = async (req, res) => {
 
     logger.info(`User saved successfully: ${user._id}`);
 
-    const { accessToken, refreshToken } = generateTokens(user);
+    const { accessToken, refreshToken } = await generateTokens(user);
 
     res.status(201).json({
       success: true,
