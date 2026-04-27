@@ -20,11 +20,16 @@ const registerUser = async (req, res) => {
     const { username, email, password } = value;
 
     let user = await User.findOne({ $or: [{ username }, { email }] });
+
     if (user) {
-      logger.warn("User already exists");
+      let message = "User already exists";
+
+      if (user.email === email) message = "Email already in use";
+      else if (user.username === username) message = "Username already taken";
+
       return res.status(400).json({
         success: false,
-        message: "User already exists",
+        message,
       });
     }
 
