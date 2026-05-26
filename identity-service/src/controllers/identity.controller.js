@@ -49,7 +49,10 @@ const registerUser = async (req, res) => {
       refreshToken,
     });
   } catch (error) {
-    logger.error("Registration error occured", error);
+    logger.error("Registration error occured", {
+      message: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -74,7 +77,7 @@ const loginUser = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      logger.warn("Invalid User");
+      logger.warn("Invalid login attempt");
       return res.status(400).json({
         success: false,
         message: "Invalid credentials",
@@ -83,7 +86,7 @@ const loginUser = async (req, res) => {
 
     const isValidPassword = await user.comparePassword(password);
     if (!isValidPassword) {
-      logger.warn("Invalid password");
+      logger.warn("Invalid login attempt");
       return res.status(400).json({
         success: false,
         message: "Invalid credentials",
@@ -98,7 +101,10 @@ const loginUser = async (req, res) => {
       userId: user._id,
     });
   } catch (error) {
-    logger.error("Login error occured", error);
+    logger.error("Login error occured", {
+      message: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -130,12 +136,12 @@ const refreshTokenUser = async (req, res) => {
     }
 
     if (storeToken.expiresAt < new Date()) {
-      logger.warn("Refesh token expired");
+      logger.warn("Refresh token expired");
       await RefreshToken.deleteOne({ _id: storeToken._id });
 
       return res.status(401).json({
         success: false,
-        message: "Refesh token expired",
+        message: "Refresh token expired",
       });
     }
 
@@ -160,7 +166,10 @@ const refreshTokenUser = async (req, res) => {
       refreshToken: newRefreshToken,
     });
   } catch (error) {
-    logger.error("Refresh token error occured", error);
+    logger.error("Refresh token error occured", {
+      message: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -200,7 +209,10 @@ const logoutUser = async (req, res) => {
       message: "Logout successfully",
     });
   } catch (error) {
-    logger.error("Logout error occured", error);
+    logger.error("Logout error occured", {
+      message: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: "Internal server error",

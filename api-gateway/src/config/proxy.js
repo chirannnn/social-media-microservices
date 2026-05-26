@@ -20,16 +20,46 @@ const identityProxy = proxy(process.env.IDENTITY_SERVICE_URL, {
   },
 
   proxyErrorHandler: (err, res) => {
-    logger.error("Proxy error", {
+    logger.error("Identity Proxy error", {
       message: err.message,
       stack: err.stack,
     });
 
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Identity service error",
     });
   },
 });
 
-module.exports = identityProxy;
+const postProxy = proxy(process.env.POST_SERVICE_URL, {
+  proxyReqPathResolver: (req) => {
+    return req.originalUrl.replace(/^\/v1/, "/api");
+  },
+
+  proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+    proxyReqOpts.headers["Content-Type"] = "application/json";
+    proxyReqOpts.headers["x-user-id"] = srcReq.user.userId;
+    return proxyReqOpts;
+  },
+
+  userResDecorator: (proxyRes, proxyResData) => {
+    logger.info(`Response received from Post service: ${proxyRes.statusCode}`);
+
+    return proxyResData;
+  },
+
+  proxyErrorHandler: (err, res) => {
+    logger.error("Post Proxy error", {
+      message: err.message,
+      stack: err.stack,
+    });
+
+    res.status(500).json({
+      success: false,
+      message: "Post service error",
+    });
+  },
+});
+
+module.exports = { identityProxy, postProxy };
