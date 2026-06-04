@@ -9,4 +9,5 @@ app.listen(PORT, () => {
   logger.info(`API Gateway is running on port ${PORT}`);
   logger.info(`Identity service URL: ${process.env.IDENTITY_SERVICE_URL}`);
   logger.info(`Post service URL: ${process.env.POST_SERVICE_URL}`);
+  logger.info(`Media service URL: ${process.env.MEDIA_SERVICE_URL}`);
 });

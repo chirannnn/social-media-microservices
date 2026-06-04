@@ -4,7 +4,7 @@ const helmet = require("helmet");
 
 const rateLimiter = require("./config/rateLimiter");
 const requestLogger = require("./middlewares/requestLogger");
-const { identityProxy, postProxy } = require("./config/proxy");
+const { identityProxy, postProxy, mediaProxy } = require("./config/proxy");
 const errorHandler = require("./middlewares/errorHandler");
 const { validateToken } = require("./middlewares/authMiddeware");
 
@@ -19,6 +19,7 @@ app.use(requestLogger);
 
 app.use("/v1/auth", identityProxy);
 app.use("/v1/posts", validateToken, postProxy);
+app.use("/v1/media", validateToken, mediaProxy);
 
 app.use(errorHandler);
 

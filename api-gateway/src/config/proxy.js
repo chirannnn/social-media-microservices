@@ -62,4 +62,38 @@ const postProxy = proxy(process.env.POST_SERVICE_URL, {
   },
 });
 
-module.exports = { identityProxy, postProxy };
+const mediaProxy = proxy(process.env.MEDIA_SERVICE_URL, {
+  proxyReqPathResolver: (req) => {
+    return req.originalUrl.replace(/^\/v1/, "/api");
+  },
+
+  proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+    proxyReqOpts.headers["x-user-id"] = srcReq.user.userId;
+    if (!srcReq.headers["content-type"].startsWith("multipart/form-data")) {
+      proxyReqOpts.headers["Content-Type"] = "application/json";
+    }
+    return proxyReqOpts;
+  },
+
+  userResDecorator: (proxyRes, proxyResData) => {
+    logger.info(`Response received from Media service: ${proxyRes.statusCode}`);
+
+    return proxyResData;
+  },
+
+  parseReqBody: false,
+
+  proxyErrorHandler: (err, res) => {
+    logger.error("Media Proxy error", {
+      message: err.message,
+      stack: err.stack,
+    });
+
+    res.status(500).json({
+      success: false,
+      message: "Media service error",
+    });
+  },
+});
+
+module.exports = { identityProxy, postProxy, mediaProxy };
