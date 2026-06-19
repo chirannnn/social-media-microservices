@@ -2,6 +2,7 @@ const Post = require("../models/Post");
 const logger = require("../utils/logger");
 const { validateCreatePost } = require("../utils/validation");
 const { invalidateCacheByPattern } = require("../utils/cache");
+const { publishEvent } = require("../utils/rabbitmq");
 
 const createPost = async (req, res) => {
   logger.info("Create post endpoint hit");
@@ -140,6 +141,13 @@ const deletePost = async (req, res) => {
         message: "Post not found",
       });
     }
+
+    // publish post delete method
+    await publishEvent("post.deleted", {
+      postId: deletedPost._id.toString(),
+      userId: req.user.userId,
+      mediaIds: deletedPost.mediaIds,
+    });
 
     await invalidateCacheByPattern(req.redisClient, `post:${postId}`);
 
