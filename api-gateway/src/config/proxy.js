@@ -96,4 +96,34 @@ const mediaProxy = proxy(process.env.MEDIA_SERVICE_URL, {
   },
 });
 
-module.exports = { identityProxy, postProxy, mediaProxy };
+const searchProxy = proxy(process.env.SEARCH_SERVICE_URL, {
+  proxyReqPathResolver: (req) => {
+    return req.originalUrl.replace(/^\/v1/, "/api");
+  },
+
+  proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+    proxyReqOpts.headers["Content-Type"] = "application/json";
+    proxyReqOpts.headers["x-user-id"] = srcReq.user.userId;
+    return proxyReqOpts;
+  },
+
+  userResDecorator: (proxyRes, proxyResData) => {
+    logger.info(`Response received from Search service: ${proxyRes.statusCode}`);
+
+    return proxyResData;
+  },
+
+  proxyErrorHandler: (err, res) => {
+    logger.error("Search Proxy error", {
+      message: err.message,
+      stack: err.stack,
+    });
+
+    res.status(500).json({
+      success: false,
+      message: "Search service error",
+    });
+  },
+});
+
+module.exports = { identityProxy, postProxy, mediaProxy, searchProxy };

@@ -10,4 +10,5 @@ app.listen(PORT, () => {
   logger.info(`Identity service URL: ${process.env.IDENTITY_SERVICE_URL}`);
   logger.info(`Post service URL: ${process.env.POST_SERVICE_URL}`);
   logger.info(`Media service URL: ${process.env.MEDIA_SERVICE_URL}`);
+  logger.info(`Search service URL: ${process.env.SEARCH_SERVICE_URL}`);
 });
